@@ -1,0 +1,187 @@
+{% extends 'shop/basic.html' %}
+
+{% block css %}
+  <style>
+    .col-md-3 {
+      display: inline-block;
+      margin-left: -4px;
+    }
+
+    .carousel-indicators .active {
+      background-color: blue;
+    }
+
+    .card {
+      max-width: 259px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .card-img-top {
+      max-width: 250px;
+      height: 250px;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .card-text {
+      font-size: 0.9rem;
+      color: #555;
+      margin: 0.5rem 0;
+    }
+
+    .btn-primary {
+      margin-top: auto;
+      background-color: #007bff;
+      border: none;
+    }
+
+    body .carousel-indicators li {
+      background-color: blue;
+    }
+
+    body .carousel-indicators {
+      bottom: 0;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+      background-color: blue;
+    }
+
+    .carousel-control-prev,
+    .carousel-control-next {
+      padding-top: 222px;
+      top: auto;
+      bottom: auto;
+    }
+
+    .no-padding {
+      padding-left: 0;
+      padding-right: 0;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+{% load static %}
+<div class="container">
+  {% for product_groups, range, nSlides in allProds %}
+    <h5 class="my-4">{{ product_groups.0.0.category|title }} - Recommended Items</h5>
+
+    <div id="demo{{ forloop.counter }}" class="col carousel slide my-3" data-ride="carousel">
+
+      <!-- Carousel indicators -->
+      <ul class="carousel-indicators">
+        <li data-target="#demo{{ forloop.counter }}" data-slide-to="0" class="active"></li>
+        {% for i in range %}
+          <li data-target="#demo{{ forloop.counter }}" data-slide-to="{{ i }}"></li>
+        {% endfor %}
+      </ul>
+
+      <!-- Carousel inner -->
+      <div class="container carousel-inner no-padding">
+        {% for group in product_groups %}
+          <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <div class="row">
+              {% for product in group %}
+                <div class="col-xs-3 col-sm-3 col-md-3 p-2">
+                  <div class="card align-items-center">
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.product_name }}">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ product.product_name }}</h5>
+                      <p class="card-text">{{ product.des|slice:"0:55" }}...</p>
+                      <div class="d-flex justify-content-between gap-2 mt-2">
+                        <span id="divpr{{ product.id }}">
+                          <button id="pr{{ product.id }}" class="btn btn-primary cart btn-sm">Add to Cart</button>
+                        </span>
+                        <a href="/shop/productview/{{ product.id }}" class="btn btn-primary btn-sm">Quick View</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Controls -->
+      <a class="carousel-control-prev" href="#demo{{ forloop.counter }}" data-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </a>
+      <a class="carousel-control-next" href="#demo{{ forloop.counter }}" data-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </a>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+  let cart = {};
+  if (localStorage.getItem('cart') === null) {
+    cart = {};
+  } else {
+    cart = JSON.parse(localStorage.getItem('cart'));
+    updateCartCount();
+  }
+
+  $('.cart').click(function () {
+    let idstr = this.id.toString();
+    if (cart[idstr] !== undefined) {
+      cart[idstr] += 1;
+    } else {
+      cart[idstr] = 1;
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+  });
+
+  function updateCartCount() {
+    let count = 0;
+    for (let key in cart) {
+      count += cart[key];
+    }
+    document.getElementById('cart').innerHTML = count;
+  }
+
+  // Bootstrap popover with HTML content
+  $('#popcart').popover({
+    html: true,
+    content: "<h5>Cart for your items in my Shopping cart</h5>"
+  });
+
+  function updateCart(cart) {
+    for (var item in cart) {
+      if (document.getElementById("div" + item)) {
+        document.getElementById("div" + item).innerHTML =
+          "<button id='minus" + item + "' class='btn btn-primary minus'>-</button> " +
+          "<span id='val" + item + "'> " + cart[item] + " </span> " +
+          "<button id='plus" + item + "' class='btn btn-primary plus'>+ </button>";
+      }
+    }
+  }
+</script>
+{% endblock %}
